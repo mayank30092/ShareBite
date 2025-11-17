@@ -21,6 +21,7 @@ export const claimFood = async (req, res) => {
     await claim.save();
 
     food.status = "claimed";
+    food.claimedBy = req.user.id;
     await food.save();
 
     res.status(201).json({ message: "Food claimed successfully", claim });
@@ -52,6 +53,54 @@ export const getAllClaims = async (req, res) => {
       .populate("food", "name status")
       .populate("claimedBy", "name email");
     res.status(200).json(claims);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const giveUpFood = async(req,res) =>{
+  try{
+    const {claimId} = req.params;
+    const claim = await Claim.findById(claimId).populate("food");
+
+    if(!claim) return res.status(404).json({message:"Claim not found"});
+    if(claim.claimedBy.toString()!==req.user.id)
+      return res.status(403).json({message:"Not authorized"});
+
+    const food = claim.food;
+    food.status = "available";
+    food.claimedBy = null;
+    await food.save();
+
+    await claim.remove();
+
+    res.status(200).json({messgae: "Food is available again"});
+  }catch(err){
+    res.status(500).json({message: err.message});
+  }
+}
+
+export const getClaimById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const claim = await Claim.findById(id)
+      .populate({
+        path: "food",
+        populate: {
+          path: "createdBy",
+          model: "User",
+          select: "name email location",
+        },
+      })
+      .populate("claimedBy", "name email")
+      .populate("approvedBy", "name email");
+
+    if (!claim) {
+      return res.status(404).json({ message: "Claim not found" });
+    }
+
+    res.status(200).json(claim);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

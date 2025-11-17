@@ -84,3 +84,13 @@ export const updateFood = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+//donated foods
+export const getMyFoods = async(req,res) =>{
+  try{
+    const foods = await Food.find({ createdBy : req.user.id});
+    res.status(200).json(foods);
+  }catch(error){
+    res.status(500).json({mesaage:error.message});
+  }
+}

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 // Generate JWT Token
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    expiresIn: process.env.JWT_EXPIRES_IN || "24h",
   });
 };
 
@@ -20,7 +20,9 @@ export const register = async (req, res) => {
     const user = await User.create({ name, email, password, role, location });
     const token = generateToken(user._id);
 
-    res.status(201).json({ message: "User registered successfully", user, token });
+    const decoded = jwt.decode(token);
+
+    res.status(201).json({ message: "User registered successfully", user, token, expiresAt: decoded.exp, });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -38,11 +40,23 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = generateToken(user._id);
-    res.status(200).json({ message: "Login successful", user, token });
+    const decoded = jwt.decode(token); // decode here
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      expiresAt: decoded.exp, // now it exists
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // ✅ Get Profile (Protected)
 export const getProfile = async (req, res) => {
