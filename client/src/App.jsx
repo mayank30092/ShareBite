@@ -13,6 +13,7 @@ import NGODashboard from "./pages/NGODashboard";
 import AvailedFoods from "./pages/AvailedFoods";
 import AvailedFoodDetails from "./pages/AvailedFoodDetails";
 import DonatedFoods from "./pages/DonatedFoods";
+import FoodDetails from "./pages/FoodDetails";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/ngo-dashboard" element={<NGODashboard />} />
           <Route path="/availed-foods" element={<AvailedFoods />} />
           <Route path="/availed-foods/:id" element={<AvailedFoodDetails />} />
+          <Route path="/food-details/:id" element={<FoodDetails />} />
         </Routes>
       </main>
       <Footer />

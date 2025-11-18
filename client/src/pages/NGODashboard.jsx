@@ -40,12 +40,10 @@ export default function NGODashboard() {
         { foodId },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      alert("Food claimed successfully!");
-      fetchFoods();
-      setSelectedFood(null);
+
+      navigate(`/food-details/${foodId}`); // ⬅️ redirect to details page
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to claim food");
+      alert("Failed to claim food");
     }
   };
 
