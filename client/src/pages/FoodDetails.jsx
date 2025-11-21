@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { getCoordinates } from "../utils/locationMap"; // ⭐ Add this import
+import "leaflet/dist/leaflet.css";
 
 export default function FoodDetails() {
   const { id } = useParams();
@@ -20,9 +20,6 @@ export default function FoodDetails() {
   }, [id]);
 
   if (!food) return <p className="text-center mt-10">Loading...</p>;
-
-  // ⭐ Get coordinates based on pickupLocation
-  const coords = getCoordinates(food.pickupLocation);
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -58,7 +55,7 @@ export default function FoodDetails() {
         <>
           <p className="text-gray-700 mb-2">📍 {food.pickupLocation}</p>
 
-          {coords ? (
+          {food.latitude && food.longitude ? (
             <div
               style={{
                 height: "400px",
@@ -69,12 +66,12 @@ export default function FoodDetails() {
               }}
             >
               <MapContainer
-                center={[coords.lat, coords.lng]}
+                center={[food.latitude, food.longitude]}
                 zoom={15}
                 style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[coords.lat, coords.lng]}>
+                <Marker position={[food.latitude, food.longitude]}>
                   <Popup>Pickup Location: {food.pickupLocation}</Popup>
                 </Marker>
               </MapContainer>
@@ -87,9 +84,7 @@ export default function FoodDetails() {
 
           <div className="mt-4">
             <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                food.pickupLocation
-              )}`}
+              href={`https://www.google.com/maps/dir/?api=1&destination=${food.latitude},${food.longitude}`}
               target="_blank"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg"
             >

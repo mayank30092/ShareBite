@@ -1,9 +1,57 @@
 import Food from "../models/Food.js";
+import axios from "axios";
 
-// Add Food
+// Helper: Geocode address → lat/lng
+async function getCoordinates(address) {
+  try {
+    const res = await axios.get("https://nominatim.openstreetmap.org/search", {
+      params: {
+        q: address,
+        format: "json",
+        limit: 1,
+      },
+      headers: {
+        "User-Agent": "FoodDonationApp/1.0",
+      },
+    });
+
+    if (res.data.length === 0) return null;
+
+    return {
+      latitude: parseFloat(res.data[0].lat),
+      longitude: parseFloat(res.data[0].lon),
+    };
+  } catch (err) {
+    console.error("Geocoding error:", err);
+    return null;
+  }
+}
+
+// ADD FOOD
 export const addFood = async (req, res) => {
   try {
-    const food = new Food({ ...req.body, createdBy: req.user.id });
+    const { pickupLocation } = req.body;
+
+    // 🔥 Convert address → lat/lng
+    const coords = await getCoordinates(pickupLocation);
+
+    if (!coords) {
+      return res.status(400).json({
+        message: "Unable to find coordinates for pickup location",
+      });
+    }
+
+    const food = new Food({
+      ...req.body,
+      createdBy: req.user.id,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      location: {
+        type: "Point",
+        coordinates: [coords.longitude, coords.latitude], // GeoJSON: [lng, lat]
+      },
+    });
+
     await food.save();
     res.status(201).json({ message: "Food item added successfully", food });
   } catch (err) {
@@ -11,23 +59,25 @@ export const addFood = async (req, res) => {
   }
 };
 
-// Get all available foods
+// GET AVAILABLE FOODS
 export const getFoods = async (req, res) => {
   try {
-    const food = await Food.find({ status: "available" }).populate("createdBy", "name email");
+    const food = await Food.find({ status: "available" })
+      .populate("createdBy", "name email");
     res.status(200).json(food);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Claim Food
+// CLAIM FOOD
 export const claimFood = async (req, res) => {
   try {
     const food = await Food.findById(req.params.id);
     if (!food) return res.status(404).json({ message: "Food not found" });
 
     food.status = "claimed";
+    food.claimedBy = req.user.id;
     await food.save();
 
     res.status(200).json({ message: "Food claimed successfully", food });
@@ -36,18 +86,21 @@ export const claimFood = async (req, res) => {
   }
 };
 
-// Get Food by ID
+// GET FOOD BY ID
 export const getFoodById = async (req, res) => {
   try {
-    const food = await Food.findById(req.params.id).populate("createdBy", "name email location");
+    const food = await Food.findById(req.params.id)
+      .populate("createdBy", "name email");
+
     if (!food) return res.status(404).json({ message: "Food not found" });
+
     res.status(200).json(food);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Delete Food
+// DELETE FOOD
 export const deleteFood = async (req, res) => {
   try {
     await Food.findByIdAndDelete(req.params.id);
@@ -57,26 +110,35 @@ export const deleteFood = async (req, res) => {
   }
 };
 
-// ✅ Update Food
+
+// UPDATE FOOD (WITH RE-GEOCODING)
 export const updateFood = async (req, res) => {
   try {
     const food = await Food.findById(req.params.id);
     if (!food) return res.status(404).json({ message: "Food not found" });
 
-    // Only creator can update
+    // Only owner can update
     if (food.createdBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to update this food" });
+      return res.status(403).json({ message: "Not authorized" });
     }
 
-    const { name, description, quantity, type, expiryDate, pickupLocation, status } = req.body;
+    const { pickupLocation } = req.body;
 
-    food.name = name || food.name;
-    food.description = description || food.description;
-    food.quantity = quantity !== undefined ? quantity : food.quantity;
-    food.type = type || food.type;
-    food.expiryDate = expiryDate || food.expiryDate;
-    food.pickupLocation = pickupLocation || food.pickupLocation;
-    food.status = status || food.status;
+    // If pickup location changed → update coordinates
+    if (pickupLocation && pickupLocation !== food.pickupLocation) {
+      const coords = await getCoordinates(pickupLocation);
+      if (coords) {
+        food.latitude = coords.latitude;
+        food.longitude = coords.longitude;
+        food.location = {
+          type: "Point",
+          coordinates: [coords.longitude, coords.latitude],
+        };
+      }
+    }
+
+    // Update fields normally
+    Object.assign(food, req.body);
 
     await food.save();
     res.status(200).json({ message: "Food updated successfully", food });
@@ -85,12 +147,12 @@ export const updateFood = async (req, res) => {
   }
 };
 
-//donated foods
-export const getMyFoods = async(req,res) =>{
-  try{
-    const foods = await Food.find({ createdBy : req.user.id});
+// GET MY DONATED FOODS
+export const getMyFoods = async (req, res) => {
+  try {
+    const foods = await Food.find({ createdBy: req.user.id });
     res.status(200).json(foods);
-  }catch(error){
-    res.status(500).json({mesaage:error.message});
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-}
+};

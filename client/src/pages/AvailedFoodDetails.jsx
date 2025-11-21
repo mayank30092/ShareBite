@@ -14,18 +14,13 @@ export default function AvailedFoodDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Safe coords: only compute when we have claim and createdBy.location
+  // compute coords only when claim exists
   const coords = claim?.food?.createdBy?.location
     ? getCoordinates(claim.food.createdBy.location)
     : null;
 
   useEffect(() => {
-    // If user isn't logged in, redirect to login (or home)
-    if (!user || !user.token) {
-      // you may prefer navigate("/") instead
-      navigate("/login");
-      return;
-    }
+    if (!user?.token) return navigate("/login");
 
     const fetchClaimDetails = async () => {
       try {
@@ -36,17 +31,10 @@ export default function AvailedFoodDetails() {
           headers: { Authorization: `Bearer ${user.token}` },
         });
 
-        // quick sanity log for debugging (remove in production)
-        // console.log("Claim response:", res.data);
         setClaim(res.data);
       } catch (err) {
-        console.error("Error fetching claim details: ", err);
-        setError(
-          err?.response?.data?.message ||
-            err.message ||
-            "Failed to load details"
-        );
-        setClaim(null);
+        console.error("Error fetching claim details:", err);
+        setError("Failed to load details");
       } finally {
         setLoading(false);
       }
@@ -55,67 +43,94 @@ export default function AvailedFoodDetails() {
     fetchClaimDetails();
   }, [id, user, navigate]);
 
-  // render states
-  if (loading) return <p className="text-center">Loading...</p>;
-  if (error) return <p className="text-center text-red-600">{error}</p>;
-  if (!claim || !claim.food)
-    return <p className="text-center">Food details not found.</p>;
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (error) return <p className="text-center text-red-600 mt-10">{error}</p>;
+  if (!claim?.food) return <p className="text-center mt-10">Food not found.</p>;
 
-  // safe references from claim
   const food = claim.food;
-  const donor = food.createdBy; // populated user (name, location, email)
+  const donor = food.createdBy;
 
   return (
-    <div className="p-6 min-h-screen bg-emerald-50">
-      <h1 className="text-3xl font-bold text-emerald-700 mb-4">Food Details</h1>
+    <div className="min-h-screen p-6 bg-gradient-to-br from-emerald-50 to-emerald-100">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/availed-foods")}
+        className="mb-6 bg-emerald-700 hover:bg-emerald-800 transition text-white px-6 py-2 rounded-lg shadow-lg"
+      >
+        ← Back
+      </button>
 
-      <div className="bg-white p-6 rounded-xl shadow-md border">
-        <h2 className="text-2xl font-semibold text-emerald-700 mb-2">
-          {food?.name || "Unnamed food"}
+      {/* Page Title */}
+      <h1 className="text-4xl font-bold text-emerald-800 mb-8 text-center">
+        Food Details
+      </h1>
+
+      <div className="max-w-3xl mx-auto bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-emerald-100">
+        {/* Title */}
+        <h2 className="text-3xl font-extrabold text-emerald-700 mb-4">
+          {food.name}
         </h2>
 
-        <p className="mb-2">
-          <strong>Quantity:</strong> {food?.quantity ?? "N/A"}
-        </p>
-        <p className="mb-2">
-          <strong>Type:</strong> {food?.type ?? "N/A"}
-        </p>
-        <p className="mb-2">
-          <strong>Claimed On:</strong>{" "}
-          {new Date(claim?.createdAt).toLocaleString()}
-        </p>
+        {/* Details Grid */}
+        <div className="grid grid-cols-1 gap-3 text-gray-700 mb-6">
+          <p>
+            <strong className="text-emerald-800">Quantity:</strong>{" "}
+            {food.quantity}
+          </p>
+          <p>
+            <strong className="text-emerald-800">Type:</strong> {food.type}
+          </p>
+          <p>
+            <strong className="text-emerald-800">Claimed On:</strong>{" "}
+            {new Date(claim.createdAt).toLocaleString()}
+          </p>
 
-        <p className="mb-2">
-          <strong>Donated By:</strong> {donor?.name ?? "Unknown"}
-        </p>
+          <hr className="my-3 border-emerald-200" />
 
-        <p className="mb-2">
-          <strong>Location:</strong> {donor?.location ?? "Not provided"}
-        </p>
+          <p>
+            <strong className="text-emerald-800">Donated By:</strong>{" "}
+            {donor?.name || "Unknown"}
+          </p>
+          <p>
+            <strong className="text-emerald-800">Address:</strong>{" "}
+            {donor?.location || "Not provided"}
+          </p>
+        </div>
 
-        {coords && (
-          <div className="mt-6">
-            <h3 className="text-xl font-semibold mb-2">Pickup Location</h3>
-
-            <MapContainer
-              center={[coords.lat, coords.lng]}
-              zoom={13}
-              scrollWheelZoom={false}
-              style={{ height: "350px", width: "100%", borderRadius: "12px" }}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-              <Marker position={[coords.lat, coords.lng]}>
-                <Popup>Pickup from: {donor?.name ?? "Donor"}</Popup>
-              </Marker>
-            </MapContainer>
+        {/* Description */}
+        {food.description && (
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-emerald-700 mb-1">
+              Description
+            </h3>
+            <p className="text-gray-700">{food.description}</p>
           </div>
         )}
 
-        {food?.description && (
-          <p className="mt-2">
-            <strong>Description:</strong> {food.description}
-          </p>
+        {/* Map Section */}
+        {coords && (
+          <div className="mt-8">
+            <h3 className="text-2xl font-semibold text-emerald-700 mb-3">
+              Pickup Location
+            </h3>
+
+            <div className="overflow-hidden rounded-2xl shadow-xl border border-emerald-200">
+              <MapContainer
+                center={[coords.lat, coords.lng]}
+                zoom={13}
+                scrollWheelZoom={false}
+                style={{ height: "350px", width: "100%" }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+                <Marker position={[coords.lat, coords.lng]}>
+                  <Popup>
+                    Pickup from: <strong>{donor?.name}</strong>
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </div>
+          </div>
         )}
       </div>
     </div>
