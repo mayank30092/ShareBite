@@ -19,7 +19,7 @@ export default function Login() {
 
     try {
       const res = await axios.post(
-        "http://localhost:4000/api/auth/login",
+        "https://sharebite-d393.onrender.com/api/auth/login",
         formData
       );
       localStorage.setItem("user", JSON.stringify(res.data));

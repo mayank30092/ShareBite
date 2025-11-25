@@ -15,7 +15,9 @@ export default function NGODashboard() {
   const fetchFoods = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:4000/api/foods");
+      const res = await axios.get(
+        "https://sharebite-d393.onrender.com/api/foods"
+      );
 
       const availableFoods = res.data.filter((food) => {
         return (
@@ -40,7 +42,7 @@ export default function NGODashboard() {
   const handleClaim = async (foodId) => {
     try {
       await axios.post(
-        "http://localhost:4000/api/claims",
+        "https://sharebite-d393.onrender.com/api/claims",
         { foodId },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );

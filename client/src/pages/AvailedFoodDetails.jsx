@@ -27,9 +27,13 @@ export default function AvailedFoodDetails() {
         setLoading(true);
         setError("");
 
-        const res = await axios.get(`http://localhost:4000/api/claims/${id}`, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        const res = await axios.get(
+          `https://sharebite-d393.onrender.com
+/api/claims/${id}`,
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
 
         setClaim(res.data);
       } catch (err) {

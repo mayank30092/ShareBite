@@ -14,7 +14,7 @@ export default function AvailedFoods() {
       try {
         setLoading(true);
         const res = await axios.get(
-          "http://localhost:4000/api/claims/my-claims",
+          "https://sharebite-d393.onrender.com/api/claims/my-claims",
           {
             headers: {
               Authorization: `Bearer ${user.token}`,

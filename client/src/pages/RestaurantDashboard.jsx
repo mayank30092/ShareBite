@@ -14,7 +14,9 @@ export default function RestaurantDashboard() {
   const fetchFoods = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:4000/api/foods`);
+      const res = await axios.get(
+        `https://sharebite-d393.onrender.com/api/foods`
+      );
       const allFoods = Array.isArray(res.data)
         ? res.data
         : res.data.foods || [];
@@ -51,11 +53,14 @@ export default function RestaurantDashboard() {
       return;
 
     try {
-      await axios.delete(`http://localhost:4000/api/foods/${id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+      await axios.delete(
+        `https://sharebite-d393.onrender.com/api/foods/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
 
       setActiveFoods(activeFoods.filter((food) => food._id !== id));
       alert("Donation deleted successfully!");

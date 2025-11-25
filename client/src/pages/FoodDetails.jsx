@@ -13,7 +13,8 @@ export default function FoodDetails() {
 
   useEffect(() => {
     const fetchFood = async () => {
-      const res = await axios.get(`http://localhost:4000/api/foods/${id}`);
+      const res = await axios.get(`https://sharebite-d393.onrender.com
+/api/foods/${id}`);
       setFood(res.data);
     };
     fetchFood();

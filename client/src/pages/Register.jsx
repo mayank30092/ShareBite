@@ -33,7 +33,7 @@ export default function Register() {
     try {
       // 👉 Send data to backend
       const res = await axios.post(
-        "http://localhost:4000/api/auth/register",
+        "https://sharebite-d393.onrender.com/api/auth/register",
         formData
       );
       alert("Registration successful! Please log in.");

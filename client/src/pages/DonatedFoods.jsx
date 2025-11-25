@@ -12,7 +12,7 @@ export default function DonatedFoods() {
       try {
         setLoading(true);
         const res = await axios.get(
-          "http://localhost:4000/api/foods/my-foods",
+          "https://sharebite-d393.onrender.com/api/foods/my-foods",
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }

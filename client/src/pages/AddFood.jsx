@@ -26,7 +26,8 @@ export default function AddFood() {
     const fetchFood = async () => {
       if (!id) return;
       try {
-        const res = await axios.get(`http://localhost:4000/api/foods/${id}`);
+        const res = await axios.get(`https://sharebite-d393.onrender.com
+/api/foods/${id}`);
         const food = res.data;
         setFormData({
           name: food.name,
@@ -81,15 +82,24 @@ export default function AddFood() {
     try {
       if (isEditMode) {
         // 📝 Update existing food
-        await axios.put(`http://localhost:4000/api/foods/${id}`, formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await axios.put(
+          `https://sharebite-d393.onrender.com
+/api/foods/${id}`,
+          formData,
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
         alert("Food updated successfully!");
       } else {
         // ➕ Add new food
-        await axios.post("http://localhost:4000/api/foods", formData, {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        await axios.post(
+          "https://sharebite-d393.onrender.com/api/foods",
+          formData,
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
         alert("Food added successfully!");
       }
 
