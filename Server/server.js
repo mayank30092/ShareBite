@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import connectDB from './config/db.js';
+import path from "path";
+import {fileURLToPath} from "url";
 
 import authRoutes from './routes/authRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
@@ -13,6 +15,11 @@ dotenv.config();
 
 const app = express();
 connectDB();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, "dist")));
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -27,6 +34,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/foods', foodRoutes);
 app.use('/api/claims', claimRoutes);
 app.use('/api/events', eventRoutes);
+
+app.get(".*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
