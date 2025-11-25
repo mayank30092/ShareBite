@@ -28,8 +28,7 @@ export default function AvailedFoodDetails() {
         setError("");
 
         const res = await axios.get(
-          `https://sharebite-d393.onrender.com
-/api/claims/${id}`,
+          `https://sharebite-d393.onrender.com/api/claims/${id}`,
           {
             headers: { Authorization: `Bearer ${user.token}` },
           }
