@@ -21,13 +21,12 @@ export default function AddFood() {
 
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // ✅ If editing, fetch food details
   useEffect(() => {
     const fetchFood = async () => {
       if (!id) return;
       try {
         const res = await axios.get(
-          `https://sharebite-d393.onrender.com/api/foods/${id}`
+          `${import.meta.env.VITE_API_URL}/api/foods/${id}`
         );
         const food = res.data;
         setFormData({
@@ -78,13 +77,13 @@ export default function AddFood() {
   };
 
   const handleSubmit = async (e) => {
+    console.log("Submitting formData:", formData);
     e.preventDefault();
 
     try {
       if (isEditMode) {
-        // 📝 Update existing food
         await axios.put(
-          `https://sharebite-d393.onrender.com/api/foods/${id}`,
+          `${import.meta.env.VITE_API_URL}/api/foods/${id}`,
           formData,
           {
             headers: { Authorization: `Bearer ${user.token}` },
@@ -92,9 +91,8 @@ export default function AddFood() {
         );
         alert("Food updated successfully!");
       } else {
-        // ➕ Add new food
         await axios.post(
-          "https://sharebite-d393.onrender.com/api/foods",
+          `${import.meta.env.VITE_API_URL}/api/foods`,
           formData,
           {
             headers: { Authorization: `Bearer ${user.token}` },
@@ -112,6 +110,14 @@ export default function AddFood() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 flex flex-col items-center">
+      {/* Attractive Back Button */}
+      <button
+        onClick={() => navigate("/restaurant-dashboard")}
+        className="self-start mb-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 active:scale-95 flex items-center gap-2"
+      >
+        ← Back
+      </button>
+
       <h1 className="text-4xl font-bold text-emerald-700 mb-8">
         {isEditMode ? "✏️ Edit Food Donation" : "🍱 Add New Food"}
       </h1>
@@ -210,7 +216,6 @@ export default function AddFood() {
             className="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-emerald-400 outline-none"
             required
           />
-          {/* Geo Loading Indicator */}
           {formData.pickupLocation.length > 5 && !formData.latitude && (
             <p className="text-xs text-emerald-600 mt-1 animate-pulse">
               ⏳ Detecting coordinates...

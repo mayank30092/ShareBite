@@ -32,7 +32,9 @@ const foodSchema = new mongoose.Schema(
 
     status: { type: String, enum: ["available", "claimed", "expired"], default: "available" },
 
-    claimedBy:{type:mongoose.Schema.Types.ObjectId, ref:"User", default:null,},
+    claimedBy:{type: mongoose.Schema.Types.ObjectId, ref:"User", default:null},
+    rating: { type: Number, default: null },
+    feedback: { type: String, default: " " },
   },
   { timestamps: true }
 );

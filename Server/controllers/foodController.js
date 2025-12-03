@@ -156,3 +156,37 @@ export const getMyFoods = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+//Feedback & rating
+export const submitFeedback = async (req, res) => {
+  const { rating, feedback } = req.body;
+  const foodId = req.params.id;
+  const userId = req.user?.id;
+
+  console.log("Submitting feedback:", { foodId, userId, rating, feedback });
+
+  try {
+    const food = await Food.findById(foodId);
+
+    if (!food) return res.status(404).json({ message: "Food not found" });
+
+    console.log("food.claimedBy:", food.claimedBy);
+
+    if (!food.claimedBy || food.claimedBy.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized to rate" });
+    }
+
+    const updatedFood = await Food.findByIdAndUpdate(
+      foodId,
+      { rating: Number(rating), feedback: feedback || "" },
+      { new: true, runValidators: true } // runValidators ensures rating/feedback match schema
+    );
+
+    res.status(200).json({ message: "Feedback submitted", food: updatedFood });
+  } catch (err) {
+    console.error("Feedback error:", err.message, err.stack);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+

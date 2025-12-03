@@ -15,15 +15,12 @@ export default function NGODashboard() {
   const fetchFoods = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        "https://sharebite-d393.onrender.com/api/foods"
-      );
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/foods`);
 
-      const availableFoods = res.data.filter((food) => {
-        return (
-          food.status === "available" && new Date(food.expiryDate) > new Date() // remove expired items
-        );
-      });
+      const availableFoods = res.data.filter(
+        (food) =>
+          food.status === "available" && new Date(food.expiryDate) > new Date()
+      );
 
       setFoods(availableFoods);
     } catch (err) {
@@ -37,12 +34,10 @@ export default function NGODashboard() {
     fetchFoods();
   }, []);
 
-  const isExpired = (expiryDate) => new Date(expiryDate) < new Date();
-
   const handleClaim = async (foodId) => {
     try {
       await axios.post(
-        "https://sharebite-d393.onrender.com/api/claims",
+        `${import.meta.env.VITE_API_URL}/api/claims`,
         { foodId },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -54,20 +49,22 @@ export default function NGODashboard() {
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 to-green-100">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-extrabold text-green-800 tracking-tight">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 sm:gap-0">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-green-800 tracking-tight">
           🌿 NGO Dashboard
         </h1>
 
         <button
           onClick={() => navigate("/availed-foods")}
-          className="bg-emerald-700 text-white px-5 py-3 rounded-xl font-semibold hover:bg-emerald-800 shadow-md hover:shadow-lg transition-all"
+          className="bg-gradient-to-r from-emerald-600 to-green-500 text-white px-5 py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all"
         >
           🛒 Availed Foods
         </button>
       </div>
 
-      <h2 className="text-2xl font-bold text-green-900 mb-4">
+      {/* Available Foods */}
+      <h2 className="text-2xl sm:text-3xl font-bold text-green-900 mb-6">
         Available Foods
       </h2>
 
@@ -76,38 +73,41 @@ export default function NGODashboard() {
       ) : foods.length === 0 ? (
         <p className="text-center text-gray-600">No food donations yet.</p>
       ) : (
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {foods.map((food) => (
             <div
               key={food._id}
               onClick={() => setSelectedFood(food)}
-              className="bg-white p-5 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-green-100 cursor-pointer"
+              className="bg-white p-5 rounded-2xl shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all border border-green-100 cursor-pointer flex flex-col justify-between"
             >
-              <div className="flex justify-between">
-                <h3 className="text-xl font-bold text-green-800">
-                  {food.name}
-                </h3>
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                  {food.type}
-                </span>
-              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-xl font-bold text-green-800">
+                    {food.name}
+                  </h3>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                    {food.type}
+                  </span>
+                </div>
 
-              <p className="text-gray-700 mt-2">
-                <strong>Qty:</strong> {food.quantity}
-              </p>
-
-              <p className="text-gray-700">
-                <strong>Expiry:</strong>{" "}
-                {new Date(food.expiryDate).toLocaleDateString()}
-              </p>
-
-              <div className="mt-3 text-sm text-gray-600 flex items-center">
-                📍 <span className="ml-1">{food.pickupLocation}</span>
+                <p className="text-gray-700">
+                  <strong>Qty:</strong> {food.quantity}
+                </p>
+                <p className="text-gray-700">
+                  <strong>Expiry:</strong>{" "}
+                  {new Date(food.expiryDate).toLocaleDateString()}
+                </p>
+                <p className="text-sm text-gray-600 mt-2 flex items-center">
+                  📍 <span className="ml-1">{food.pickupLocation}</span>
+                </p>
               </div>
 
               <button
-                className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition shadow"
-                onClick={() => navigate(`/availed-foods/${claim._id}`)}
+                className="mt-4 w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white py-2 rounded-lg hover:from-emerald-500 hover:to-green-600 transition shadow font-semibold"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/food-details/${food._id}`);
+                }}
               >
                 View Details
               </button>
@@ -116,11 +116,10 @@ export default function NGODashboard() {
         </div>
       )}
 
-      {/* Interactive Modal */}
+      {/* Modal */}
       {selectedFood && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-xl w-[90%] relative animate-fadeIn scale-95 animate-scaleUp">
-            {/* Close Button */}
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-xl w-[90%] relative transform scale-95 animate-scaleUp transition-all duration-300">
             <button
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
               onClick={() => setSelectedFood(null)}
@@ -131,46 +130,44 @@ export default function NGODashboard() {
             <h2 className="text-3xl font-bold text-green-800 mb-3">
               {selectedFood.name}
             </h2>
-
             <p className="text-gray-700">{selectedFood.description}</p>
-
             <p className="text-gray-700 mt-2">
               <strong>Quantity:</strong> {selectedFood.quantity}
             </p>
-
             <p className="text-gray-700">
               <strong>Type:</strong> {selectedFood.type}
             </p>
-
             <p className="text-gray-700 mb-3">
               <strong>Expiry:</strong>{" "}
               {new Date(selectedFood.expiryDate).toLocaleDateString()}
             </p>
 
             {/* Map */}
-            <h3 className="text-lg font-semibold mt-4 mb-2">
-              Restaurant Location
-            </h3>
-
-            <div className="rounded-xl overflow-hidden shadow-md border border-gray-200">
+            <div className="rounded-xl overflow-hidden shadow-md border border-gray-200 mb-4">
               <MapContainer
-                center={[selectedFood.latitude, selectedFood.longitude]}
+                center={[
+                  selectedFood.latitude || 0,
+                  selectedFood.longitude || 0,
+                ]}
                 zoom={14}
                 style={{ height: "250px", width: "100%" }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker
-                  position={[selectedFood.latitude, selectedFood.longitude]}
+                  position={[
+                    selectedFood.latitude || 0,
+                    selectedFood.longitude || 0,
+                  ]}
                 >
                   <Popup>{selectedFood.pickupLocation}</Popup>
                 </Marker>
               </MapContainer>
             </div>
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => handleClaim(selectedFood._id)}
-                className="w-full bg-green-600 text-white py-3 rounded-xl shadow hover:bg-green-700 transition"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-500 text-white py-3 rounded-xl shadow hover:from-emerald-500 hover:to-green-600 transition font-semibold"
               >
                 ✅ Avail Food
               </button>
